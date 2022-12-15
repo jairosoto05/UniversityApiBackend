@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+
 namespace UniversityApiBackend.Models.DataModels
 {
     public class User: BaseEntity
@@ -8,7 +9,7 @@ namespace UniversityApiBackend.Models.DataModels
         [Required, StringLength(100)]
         public string LastName { get; set; } = string.Empty;
         [Required, EmailAddress]
-        public string EmailAddress { get; set; } = string.Empty;
+        public string Email { get; set; } = string.Empty;
         [Required]
         public string Password { get; set; } = string.Empty;
     }
