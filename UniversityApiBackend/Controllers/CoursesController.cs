@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using UniversityApiBackend.DataAccess;
@@ -25,14 +26,20 @@ namespace UniversityApiBackend.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Course>>> GetCOURSES()
         {
-            return await _context.COURSES.ToListAsync();
+            //return await _context.COURSES.ToListAsync();
+            //String[] Items =new Items { "Category", "Students" };
+            return await _context.COURSES.Include( "Category").Include("Students")
+                .ToListAsync();
         }
 
         // GET: api/Courses/5
         [HttpGet("{id}")]
         public async Task<ActionResult<Course>> GetCourse(int id)
         {
-            var course = await _context.COURSES.FindAsync(id);
+            //return await _db.Authors.Include(b => b.Books)
+            //            .FirstOrDefaultAsync(i => i.Id == id);
+            var course = await _context.COURSES.Include("Categories")
+                        .FirstOrDefaultAsync(i => i.Id == id);
 
             if (course == null)
             {

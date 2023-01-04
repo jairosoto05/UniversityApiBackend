@@ -25,7 +25,8 @@ namespace UniversityApiBackend.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Category>>> GetCATEGORIES()
         {
-            return await _context.CATEGORIES.ToListAsync();
+            return await _context.CATEGORIES.Include("Courses")
+                    .ToListAsync();
         }
 
         // GET: api/Categories/5

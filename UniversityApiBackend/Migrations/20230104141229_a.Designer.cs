@@ -12,8 +12,8 @@ using UniversityApiBackend.DataAccess;
 namespace UniversityApiBackend.Migrations
 {
     [DbContext(typeof(UniversityDBContext))]
-    [Migration("20221215203703_Create USERS, STUDENTS, COURSES, CHAPTERS, CATEGORIES tables")]
-    partial class CreateUSERSSTUDENTSCOURSESCHAPTERSCATEGORIEStables
+    [Migration("20230104141229_a")]
+    partial class a
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -23,21 +23,6 @@ namespace UniversityApiBackend.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             OracleModelBuilderExtensions.UseIdentityColumns(modelBuilder, 1L, 1);
-
-            modelBuilder.Entity("CategoryCourse", b =>
-                {
-                    b.Property<int>("CategoriesId")
-                        .HasColumnType("NUMBER(10)");
-
-                    b.Property<int>("CoursesId")
-                        .HasColumnType("NUMBER(10)");
-
-                    b.HasKey("CategoriesId", "CoursesId");
-
-                    b.HasIndex("CoursesId");
-
-                    b.ToTable("CategoryCourse");
-                });
 
             modelBuilder.Entity("CourseStudent", b =>
                 {
@@ -62,6 +47,10 @@ namespace UniversityApiBackend.Migrations
 
                     OraclePropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
 
+                    b.Property<string>("CategoryName")
+                        .IsRequired()
+                        .HasColumnType("NVARCHAR2(2000)");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("TIMESTAMP(7)");
 
@@ -73,73 +62,20 @@ namespace UniversityApiBackend.Migrations
                         .HasColumnType("TIMESTAMP(7)");
 
                     b.Property<string>("DeletedBy")
-                        .IsRequired()
                         .HasColumnType("NVARCHAR2(2000)");
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("NUMBER(1)");
 
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("NVARCHAR2(2000)");
-
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("TIMESTAMP(7)");
 
                     b.Property<string>("UpdatedBy")
-                        .IsRequired()
                         .HasColumnType("NVARCHAR2(2000)");
 
                     b.HasKey("Id");
 
                     b.ToTable("CATEGORIES");
-                });
-
-            modelBuilder.Entity("UniversityApiBackend.Models.DataModels.Chapter", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("NUMBER(10)");
-
-                    OraclePropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
-
-                    b.Property<int>("CourseId")
-                        .HasColumnType("NUMBER(10)");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("TIMESTAMP(7)");
-
-                    b.Property<string>("CreatedBy")
-                        .IsRequired()
-                        .HasColumnType("NVARCHAR2(2000)");
-
-                    b.Property<DateTime>("DeletedAt")
-                        .HasColumnType("TIMESTAMP(7)");
-
-                    b.Property<string>("DeletedBy")
-                        .IsRequired()
-                        .HasColumnType("NVARCHAR2(2000)");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("NUMBER(1)");
-
-                    b.Property<string>("List")
-                        .IsRequired()
-                        .HasColumnType("NVARCHAR2(2000)");
-
-                    b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("TIMESTAMP(7)");
-
-                    b.Property<string>("UpdatedBy")
-                        .IsRequired()
-                        .HasColumnType("NVARCHAR2(2000)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CourseId")
-                        .IsUnique();
-
-                    b.ToTable("CHAPTERS");
                 });
 
             modelBuilder.Entity("UniversityApiBackend.Models.DataModels.Course", b =>
@@ -150,6 +86,9 @@ namespace UniversityApiBackend.Migrations
 
                     OraclePropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
 
+                    b.Property<int>("CategoryId")
+                        .HasColumnType("NUMBER(10)");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("TIMESTAMP(7)");
 
@@ -161,7 +100,6 @@ namespace UniversityApiBackend.Migrations
                         .HasColumnType("TIMESTAMP(7)");
 
                     b.Property<string>("DeletedBy")
-                        .IsRequired()
                         .HasColumnType("NVARCHAR2(2000)");
 
                     b.Property<string>("Description")
@@ -188,10 +126,11 @@ namespace UniversityApiBackend.Migrations
                         .HasColumnType("TIMESTAMP(7)");
 
                     b.Property<string>("UpdatedBy")
-                        .IsRequired()
                         .HasColumnType("NVARCHAR2(2000)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("CategoryId");
 
                     b.ToTable("COURSES");
                 });
@@ -215,7 +154,6 @@ namespace UniversityApiBackend.Migrations
                         .HasColumnType("TIMESTAMP(7)");
 
                     b.Property<string>("DeletedBy")
-                        .IsRequired()
                         .HasColumnType("NVARCHAR2(2000)");
 
                     b.Property<DateTime>("Dob")
@@ -236,7 +174,6 @@ namespace UniversityApiBackend.Migrations
                         .HasColumnType("TIMESTAMP(7)");
 
                     b.Property<string>("UpdatedBy")
-                        .IsRequired()
                         .HasColumnType("NVARCHAR2(2000)");
 
                     b.HasKey("Id");
@@ -263,7 +200,6 @@ namespace UniversityApiBackend.Migrations
                         .HasColumnType("TIMESTAMP(7)");
 
                     b.Property<string>("DeletedBy")
-                        .IsRequired()
                         .HasColumnType("NVARCHAR2(2000)");
 
                     b.Property<string>("Email")
@@ -291,27 +227,11 @@ namespace UniversityApiBackend.Migrations
                         .HasColumnType("TIMESTAMP(7)");
 
                     b.Property<string>("UpdatedBy")
-                        .IsRequired()
                         .HasColumnType("NVARCHAR2(2000)");
 
                     b.HasKey("Id");
 
                     b.ToTable("USERS");
-                });
-
-            modelBuilder.Entity("CategoryCourse", b =>
-                {
-                    b.HasOne("UniversityApiBackend.Models.DataModels.Category", null)
-                        .WithMany()
-                        .HasForeignKey("CategoriesId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("UniversityApiBackend.Models.DataModels.Course", null)
-                        .WithMany()
-                        .HasForeignKey("CoursesId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
                 });
 
             modelBuilder.Entity("CourseStudent", b =>
@@ -329,21 +249,20 @@ namespace UniversityApiBackend.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("UniversityApiBackend.Models.DataModels.Chapter", b =>
+            modelBuilder.Entity("UniversityApiBackend.Models.DataModels.Course", b =>
                 {
-                    b.HasOne("UniversityApiBackend.Models.DataModels.Course", "Course")
-                        .WithOne("Chapter")
-                        .HasForeignKey("UniversityApiBackend.Models.DataModels.Chapter", "CourseId")
+                    b.HasOne("UniversityApiBackend.Models.DataModels.Category", "Category")
+                        .WithMany("Courses")
+                        .HasForeignKey("CategoryId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Course");
+                    b.Navigation("Category");
                 });
 
-            modelBuilder.Entity("UniversityApiBackend.Models.DataModels.Course", b =>
+            modelBuilder.Entity("UniversityApiBackend.Models.DataModels.Category", b =>
                 {
-                    b.Navigation("Chapter")
-                        .IsRequired();
+                    b.Navigation("Courses");
                 });
 #pragma warning restore 612, 618
         }
