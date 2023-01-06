@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System.Linq;
+using System.ComponentModel.DataAnnotations;
 
 namespace UniversityApiBackend.Models.DataModels
 {
@@ -8,6 +9,6 @@ namespace UniversityApiBackend.Models.DataModels
         public string? CategoryName { get; set; } = string.Empty;
 
         [Required]
-        public virtual ICollection<Course> Courses { get; set; } = new List<Course>();
+        public virtual ICollection<Course> Courses { get; set; }
     }
 }

@@ -6,7 +6,9 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using UniversityApiBackend.DataAccess;
+using UniversityApiBackend.DTO;
 using UniversityApiBackend.Models.DataModels;
+using UniversityApiBackend.Services;
 
 namespace UniversityApiBackend.Controllers
 {
@@ -14,96 +16,81 @@ namespace UniversityApiBackend.Controllers
     [ApiController]
     public class CategoriesController : ControllerBase
     {
-        private readonly UniversityDBContext _context;
+        private readonly ICategoryService _service;
 
-        public CategoriesController(UniversityDBContext context)
+        public CategoriesController(ICategoryService service)
         {
-            _context = context;
+            _service = service;
         }
 
         // GET: api/Categories
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Category>>> GetCATEGORIES()
+        public async Task<ActionResult<IEnumerable<CategoryResDTO>>> GetCATEGORIES()
         {
-            return await _context.CATEGORIES.Include("Courses")
-                    .ToListAsync();
+            var categories = await _service.GetCategoriesAsync();
+
+            if(categories == null)
+            {
+                return StatusCode(StatusCodes.Status400BadRequest, "No categories in database");
+            }
+
+            return StatusCode(StatusCodes.Status200OK, categories);
         }
 
         // GET: api/Categories/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Category>> GetCategory(int id)
+        public async Task<ActionResult<CategoryResDTO>> GetCategory(int id)
         {
-            var category = await _context.CATEGORIES.FindAsync(id);
+            var category = await _service.GetCategoryByIdAsync(id);
 
             if (category == null)
             {
-                return NotFound();
+                return StatusCode(StatusCodes.Status400BadRequest, $"No Category found for id: {id}");
             }
 
-            return category;
+            return StatusCode(StatusCodes.Status200OK, category);
         }
 
         // PUT: api/Categories/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutCategory(int id, Category category)
+        public async Task<ActionResult<CategoryResDTO>> PutCategory(int id, CategoryReqDTO category)
         {
-            if (id != category.Id)
+            var categoryModified = await _service.PutCategoryAsync(id, category);
+            if (categoryModified == null)
             {
-                return BadRequest();
+                return StatusCode(StatusCodes.Status400BadRequest, $"No Category found for id: {id}");
             }
-
-            _context.Entry(category).State = EntityState.Modified;
-
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!CategoryExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
-
-            return NoContent();
+            return categoryModified;
         }
 
         // POST: api/Categories
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Category>> PostCategory(Category category)
+        public async Task<ActionResult<CategoryResDTO>> PostCategory(CategoryReqDTO categoryDto)
         {
-            _context.CATEGORIES.Add(category);
-            await _context.SaveChangesAsync();
-
-            return CreatedAtAction("GetCategory", new { id = category.Id }, category);
+            var category = await _service.PostCategoryAsync(categoryDto);
+            return CreatedAtAction("GetCategory", new {id = category.Id }, category);
         }
 
         // DELETE: api/Categories/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteCategory(int id)
         {
-            var category = await _context.CATEGORIES.FindAsync(id);
-            if (category == null)
+            try
             {
-                return NotFound();
+                var isDeleted = await _service.DeleteCategoryAsync(id);
+                if (!isDeleted)
+                {
+                    return StatusCode(StatusCodes.Status400BadRequest, $"No Category found for id: {id}");
+                }
+                return StatusCode(StatusCodes.Status200OK, "Category eliminated");
             }
-
-            _context.CATEGORIES.Remove(category);
-            await _context.SaveChangesAsync();
-
-            return NoContent();
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status400BadRequest, ex);
+            }
         }
 
-        private bool CategoryExists(int id)
-        {
-            return _context.CATEGORIES.Any(e => e.Id == id);
-        }
     }
 }
