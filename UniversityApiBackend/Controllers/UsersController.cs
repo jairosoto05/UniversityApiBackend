@@ -6,7 +6,9 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using UniversityApiBackend.DataAccess;
+using UniversityApiBackend.DTO;
 using UniversityApiBackend.Models.DataModels;
+using UniversityApiBackend.Services;
 
 namespace UniversityApiBackend.Controllers
 {
@@ -14,95 +16,78 @@ namespace UniversityApiBackend.Controllers
     [ApiController]
     public class UsersController : ControllerBase
     {
-        private readonly UniversityDBContext _context;
+        private readonly IUserService _service;
 
-        public UsersController(UniversityDBContext context)
+        public UsersController(IUserService service)
         {
-            _context = context;
+            _service = service;
         }
 
         // GET: api/Users
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<User>>> GetUSERS()
+        public async Task<ActionResult<IEnumerable<UserResDTO>>> GetUsers()
         {
-            return await _context.USERS.ToListAsync();
+            var users = await _service.GetUsersAsync();
+
+            if (users.Message == "NotFound")
+            {
+                users.Message = $"No User in Database";
+                return StatusCode(404, users);
+            }
+
+            return StatusCode(StatusCodes.Status200OK, users);
         }
 
         // GET: api/Users/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<User>> GetUser(int id)
+        public async Task<ActionResult<UserResDTO>> GetUser(int id)
         {
-            var user = await _context.USERS.FindAsync(id);
+            var user = await _service.GetUserByIdAsync(id);
 
-            if (user == null)
+            if (user.Success == false & user.Message == "NotFound")
             {
-                return NotFound();
+                user.Message = $"No User found for id: {id}";
+                return StatusCode(404, user);
             }
 
-            return user;
+            return StatusCode(StatusCodes.Status200OK, user);
         }
 
         // PUT: api/Users/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutUser(int id, User user)
+        public async Task<ActionResult<UserResDTO>> PutUser(int id, UserReqDTO User)
         {
-            if (id != user.Id)
+            var userModified = await _service.PutUserAsync(id, User);
+            if (userModified.Success == false & userModified.Message == "NotFound")
             {
-                return BadRequest();
+                userModified.Message = $"No User found for id: {id}";
+                return StatusCode(404, userModified);
             }
-
-            _context.Entry(user).State = EntityState.Modified;
-
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!UserExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
-
-            return NoContent();
+            return Ok(userModified);
         }
 
         // POST: api/Users
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<User>> PostUser(User user)
+        public async Task<ActionResult<UserResDTO>> PostUser(UserReqDTO UserDto)
         {
-            _context.USERS.Add(user);
-            await _context.SaveChangesAsync();
-
-            return CreatedAtAction("GetUser", new { id = user.Id }, user);
+            var user = await _service.PostUserAsync(UserDto);
+            return Ok(user);
         }
 
         // DELETE: api/Users/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteUser(int id)
         {
-            var user = await _context.USERS.FindAsync(id);
-            if (user == null)
+            var user = await _service.DeleteUserAsync(id);
+            if (user.Success == false & user.Message == "NotFound")
             {
-                return NotFound();
+                user.Message = $"No User found for id: {id}";
+                return StatusCode(404, user);
             }
-
-            _context.USERS.Remove(user);
-            await _context.SaveChangesAsync();
-
-            return NoContent();
+            return StatusCode(StatusCodes.Status200OK, user);
         }
 
-        private bool UserExists(int id)
-        {
-            return _context.USERS.Any(e => e.Id == id);
-        }
     }
 }

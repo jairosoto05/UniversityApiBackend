@@ -16,6 +16,8 @@ namespace UniversityApiBackend.Utils
             CreateMap<CourseReqDTO, Course>();
             CreateMap<Student, StudentResDTO>().ReverseMap();
             CreateMap<Student, StudentMinDTO>();
+            CreateMap<User, UserResDTO>().ReverseMap();
+            CreateMap<UserReqDTO, User>();
         }
     }
 }

@@ -6,23 +6,23 @@ using UniversityApiBackend.Models.DataModels;
 
 namespace UniversityApiBackend.Services
 {
-    public class CategoryService : ICategoryService
+    public class UserService : IUserService
     {
         private readonly UniversityDBContext _context;
         private readonly IMapper _mapper;
 
-        public CategoryService(UniversityDBContext context, IMapper mapper)
+        public UserService(UniversityDBContext context, IMapper mapper)
         {
             _context = context;
             _mapper = mapper;
         }
-        public async Task<ServiceResponse<List<CategoryResDTO>>> GetCategorysAsync()
+        public async Task<ServiceResponse<List<UserResDTO>>> GetUsersAsync()
         {
-            ServiceResponse<List<CategoryResDTO>> _response = new();
+            ServiceResponse<List<UserResDTO>> _response = new();
             try
             {
-                var categories = await _context.CATEGORIES!.Include(c => c.Courses).ToListAsync();
-                if (categories == null)
+                var Users = await _context.USERS!.ToListAsync();
+                if (Users == null)
                 {
                     _response.Success = false;
                     _response.Message = "NotFound";
@@ -30,7 +30,7 @@ namespace UniversityApiBackend.Services
                 }
                 _response.Success = true;
                 _response.Message = "ok";
-                _response.Data = _mapper.Map<List<CategoryResDTO>>(categories);
+                _response.Data = _mapper.Map<List<UserResDTO>>(Users);
 
             }
             catch (Exception ex)
@@ -45,13 +45,13 @@ namespace UniversityApiBackend.Services
 
         }
 
-        public async Task<ServiceResponse<CategoryResDTO>> GetCategoryByIdAsync(int id)
+        public async Task<ServiceResponse<UserResDTO>> GetUserByIdAsync(int id)
         {
-            ServiceResponse<CategoryResDTO> _response = new();
+            ServiceResponse<UserResDTO> _response = new();
             try
             {
-                var category = await _context.CATEGORIES!.Include(c => c.Courses).FirstOrDefaultAsync(c => c.Id == id);
-                if (category == null)
+                var user = await _context.USERS!.FirstOrDefaultAsync(c => c.Id == id);
+                if (user == null)
                 {
                     _response.Success = false;
                     _response.Message = "NotFound";
@@ -59,7 +59,7 @@ namespace UniversityApiBackend.Services
                 }
                 _response.Success = true;
                 _response.Message = "OK";
-                _response.Data = _mapper.Map<CategoryResDTO>(category);
+                _response.Data = _mapper.Map<UserResDTO>(user);
             }
             catch (Exception ex)
             {
@@ -71,19 +71,23 @@ namespace UniversityApiBackend.Services
             return _response;
         }
 
-        public async Task<ServiceResponse<CategoryResDTO>> PostCategoryAsync(CategoryReqDTO CategoryDto)
+        public async Task<ServiceResponse<UserResDTO>> PostUserAsync(UserReqDTO UserDto)
         {
-            ServiceResponse<CategoryResDTO> _response = new();
+            ServiceResponse<UserResDTO> _response = new();
             try
             {
-                var category = new Category()
+                var user = new User()
                 {
-                    Name = CategoryDto.Name,
+                    Name = UserDto.Name,
+                    LastName = UserDto.LastName,
+                    Email = UserDto.Email,
+                    Password= UserDto.Password,
                 };
-                _context.CATEGORIES!.Add(category);
+
+                _context.USERS!.Add(user);
                 await _context.SaveChangesAsync();
 
-                _response.Data = _mapper.Map<CategoryResDTO>(category);
+                _response.Data = _mapper.Map<UserResDTO>(user);
                 _response.Success = true;
                 _response.Message = "Created";
 
@@ -99,13 +103,21 @@ namespace UniversityApiBackend.Services
             return _response;
         }
 
-        public async Task<ServiceResponse<CategoryResDTO>> PutCategoryAsync(int id, CategoryReqDTO CategoryDto)
+        public async Task<ServiceResponse<UserResDTO>> PutUserAsync(int id, UserReqDTO UserDto)
         {
-            ServiceResponse<CategoryResDTO> _response = new();
+            ServiceResponse<UserResDTO> _response = new();
             try
             {
-                Category CategoryModified = new() { Id = id, Name = CategoryDto.Name };
-                _context.Entry(CategoryModified).State = EntityState.Modified;
+                var user = new User()
+                {
+                    Id= id,
+                    Name = UserDto.Name,
+                    LastName = UserDto.LastName,
+                    Email = UserDto.Email,
+                    Password = UserDto.Password,
+                };
+
+                _context.Entry(user).State = EntityState.Modified;
                 await _context.SaveChangesAsync();
                 _response.Data = null!;
                 _response.Success = true;
@@ -113,7 +125,7 @@ namespace UniversityApiBackend.Services
             }
             catch (Exception ex)
             {
-                if (!CategoryExists(id))
+                if (!UserExists(id))
                 {
                     _response.Data = null!;
                     _response.Success = false;
@@ -130,28 +142,22 @@ namespace UniversityApiBackend.Services
                 }
             }
 
-            return await GetCategoryByIdAsync(id);
+            return await GetUserByIdAsync(id);
         }
 
-        public async Task<ServiceResponse<CategoryResDTO>> DeleteCategoryAsync(int id)
+        public async Task<ServiceResponse<UserResDTO>> DeleteUserAsync(int id)
         {
-            ServiceResponse<CategoryResDTO> _response = new();
+            ServiceResponse<UserResDTO> _response = new();
             try
             {
-                var category = await _context.CATEGORIES!.Include(c => c.Courses).FirstOrDefaultAsync(c => c.Id == id);
-                if (category == null)
+                var user = await _context.USERS!.FindAsync(id);
+                if (user == null)
                 {
                     _response.Success = false;
                     _response.Message = "NotFound";
                     return _response;
                 }
-                else if (category.Courses != null)
-                {
-                    _response.Success = false;
-                    _response.Message = "HasCourses";
-                    return _response;
-                }
-                _context.CATEGORIES!.Remove(category);
+                _context.USERS.Remove(user);
                 await _context.SaveChangesAsync();
 
                 _response.Success = true;
@@ -174,9 +180,9 @@ namespace UniversityApiBackend.Services
 
 
 
-        private bool CategoryExists(int id)
+        private bool UserExists(int id)
         {
-            return _context.CATEGORIES!.Any(e => e.Id == id);
+            return _context.USERS!.Any(e => e.Id == id);
         }
     }
 }

@@ -65,7 +65,7 @@ namespace UniversityApiBackend.Controllers
                 courseModified.Message = $"No Course found for id: {id}";
                 return StatusCode(404, courseModified);
             }
-            else if (courseModified.Data == null & courseModified.Message[..courseModified.Message.IndexOf(':')] == "Student NotFound")
+            else if (courseModified.Data == null & courseModified.Message![..courseModified.Message!.IndexOf(':')] == "Student NotFound")
             {
                 string idOfStudent = courseModified.Message[(courseModified.Message.IndexOf(':') + 1)..];
                 courseModified.Message = $"No Student found for id: {idOfStudent}";
@@ -85,7 +85,7 @@ namespace UniversityApiBackend.Controllers
                 course.Message = $"No Category found for id: {CourseDto.Category!.Id}";
                 return StatusCode(404, course);
             }
-            else if (course.Data == null & course.Message[..course.Message.IndexOf(':')] == "Student NotFound")
+            else if (course.Data == null & course.Message![..course.Message!.IndexOf(':')] == "Student NotFound")
             {
                 string id = course.Message[(course.Message.IndexOf(':')+1) ..];
                 course.Message = $"No Student found for id: {id}";

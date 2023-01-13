@@ -17,6 +17,7 @@ builder.Services.AddControllers();
 builder.Services.AddScoped<ICategoryService,CategoryService>();
 builder.Services.AddScoped<ICourseService, CourseService>();
 builder.Services.AddScoped<IStudentService, StudentService>();
+builder.Services.AddScoped<IUserService, UserService>();
 
 //Add AutoMapper
 builder.Services.AddAutoMapper(typeof(Program));
