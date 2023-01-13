@@ -7,7 +7,9 @@ using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using UniversityApiBackend.DataAccess;
+using UniversityApiBackend.DTO;
 using UniversityApiBackend.Models.DataModels;
+using UniversityApiBackend.Services;
 
 namespace UniversityApiBackend.Controllers
 {
@@ -15,101 +17,95 @@ namespace UniversityApiBackend.Controllers
     [ApiController]
     public class CoursesController : ControllerBase
     {
-        private readonly UniversityDBContext _context;
+        private readonly ICourseService _service;
 
-        public CoursesController(UniversityDBContext context)
+        public CoursesController(ICourseService service)
         {
-            _context = context;
+            _service = service;
         }
 
         // GET: api/Courses
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Course>>> GetCOURSES()
+        public async Task<ActionResult<IEnumerable<CourseResDTO>>> GetCourses()
         {
-            //return await _context.COURSES.ToListAsync();
-            //String[] Items =new Items { "Category", "Students" };
-            return await _context.COURSES.Include( "Category").Include("Students")
-                .ToListAsync();
+            var courses = await _service.GetCoursesAsync();
+
+            if (courses.Message == "NotFound")
+            {
+                courses.Message = $"No Course in Database";
+                return StatusCode(404, courses);
+            }
+
+            return StatusCode(StatusCodes.Status200OK, courses);
         }
 
         // GET: api/Courses/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Course>> GetCourse(int id)
+        public async Task<ActionResult<CourseResDTO>> GetCourse(int id)
         {
-            //return await _db.Authors.Include(b => b.Books)
-            //            .FirstOrDefaultAsync(i => i.Id == id);
-            var course = await _context.COURSES.Include("Categories")
-                        .FirstOrDefaultAsync(i => i.Id == id);
+            var course = await _service.GetCourseByIdAsync(id);
 
-            if (course == null)
+            if (course.Success == false & course.Message == "NotFound")
             {
-                return NotFound();
+                course.Message = $"No Course found for id: {id}";
+                return StatusCode(404, course);
             }
 
-            return course;
+            return StatusCode(StatusCodes.Status200OK, course);
         }
 
         // PUT: api/Courses/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutCourse(int id, Course course)
+        public async Task<ActionResult<CourseResDTO>> PutCourse(int id, CourseReqDTO Course)
         {
-            if (id != course.Id)
+            var courseModified = await _service.PutCourseAsync(id, Course);
+            if (courseModified.Success == false & courseModified.Message == "Course NotFound")
             {
-                return BadRequest();
+                courseModified.Message = $"No Course found for id: {id}";
+                return StatusCode(404, courseModified);
             }
-
-            _context.Entry(course).State = EntityState.Modified;
-
-            try
+            else if (courseModified.Data == null & courseModified.Message[..courseModified.Message.IndexOf(':')] == "Student NotFound")
             {
-                await _context.SaveChangesAsync();
+                string idOfStudent = courseModified.Message[(courseModified.Message.IndexOf(':') + 1)..];
+                courseModified.Message = $"No Student found for id: {idOfStudent}";
+                return StatusCode(404, courseModified);
             }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!CourseExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
-
-            return NoContent();
+            return Ok(courseModified);
         }
 
         // POST: api/Courses
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Course>> PostCourse(Course course)
+        public async Task<ActionResult<CourseResDTO>> PostCourse(CourseReqDTO CourseDto)
         {
-            _context.COURSES.Add(course);
-            await _context.SaveChangesAsync();
-
-            return CreatedAtAction("GetCourse", new { id = course.Id }, course);
+            var course = await _service.PostCourseAsync(CourseDto);
+            if (course.Data == null & course.Message == "Category NotFound")
+            {
+                course.Message = $"No Category found for id: {CourseDto.Category!.Id}";
+                return StatusCode(404, course);
+            }
+            else if (course.Data == null & course.Message[..course.Message.IndexOf(':')] == "Student NotFound")
+            {
+                string id = course.Message[(course.Message.IndexOf(':')+1) ..];
+                course.Message = $"No Student found for id: {id}";
+                return StatusCode(404, course);
+            }
+            return Ok(course);
         }
 
         // DELETE: api/Courses/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteCourse(int id)
         {
-            var course = await _context.COURSES.FindAsync(id);
-            if (course == null)
-            {
-                return NotFound();
+                var course = await _service.DeleteCourseAsync(id);
+                if (course.Success == false & course.Message == "NotFound")
+                {
+                    course.Message = $"No Course found for id: {id}";
+                    return StatusCode(404, course);
             }
-
-            _context.COURSES.Remove(course);
-            await _context.SaveChangesAsync();
-
-            return NoContent();
+                return StatusCode(StatusCodes.Status200OK, course);
         }
 
-        private bool CourseExists(int id)
-        {
-            return _context.COURSES.Any(e => e.Id == id);
-        }
     }
 }

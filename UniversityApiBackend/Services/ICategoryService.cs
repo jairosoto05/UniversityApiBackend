@@ -6,10 +6,11 @@ namespace UniversityApiBackend.Services
 {
     public interface ICategoryService
     {
-        Task<List<CategoryResDTO>> GetCategoriesAsync();
-        Task<CategoryResDTO> GetCategoryByIdAsync(int id);
-        Task<CategoryResDTO> PostCategoryAsync(CategoryReqDTO categoryDto);
-        Task<CategoryResDTO> PutCategoryAsync(int id, CategoryReqDTO category);
-        Task<bool> DeleteCategoryAsync(int id);
+        Task<ServiceResponse<List<CategoryResDTO>>> GetCategorysAsync();
+        Task<ServiceResponse<CategoryResDTO>> GetCategoryByIdAsync(int id);
+        Task<ServiceResponse<CategoryResDTO>> PostCategoryAsync(CategoryReqDTO CategoryDto);
+        Task<ServiceResponse<CategoryResDTO>> PutCategoryAsync(int id, CategoryReqDTO Category);
+        Task<ServiceResponse<CategoryResDTO>> DeleteCategoryAsync(int id);
+
     }
 }

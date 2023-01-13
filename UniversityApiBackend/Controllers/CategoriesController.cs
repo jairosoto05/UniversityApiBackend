@@ -11,85 +11,87 @@ using UniversityApiBackend.Models.DataModels;
 using UniversityApiBackend.Services;
 
 namespace UniversityApiBackend.Controllers
-{
+{ 
     [Route("api/[controller]")]
     [ApiController]
-    public class CategoriesController : ControllerBase
+    public class CategorysController : ControllerBase
     {
         private readonly ICategoryService _service;
 
-        public CategoriesController(ICategoryService service)
+        public CategorysController(ICategoryService service)
         {
             _service = service;
         }
 
-        // GET: api/Categories
+        // GET: api/Categorys
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<CategoryResDTO>>> GetCATEGORIES()
+        public async Task<ActionResult<IEnumerable<CategoryResDTO>>> GetCategorys()
         {
-            var categories = await _service.GetCategoriesAsync();
+            var categorys = await _service.GetCategorysAsync();
 
-            if(categories == null)
+            if (categorys.Message == "NotFound")
             {
-                return StatusCode(StatusCodes.Status400BadRequest, "No categories in database");
+                categorys.Message = $"No Category in Database";
+                return StatusCode(404, categorys);
             }
 
-            return StatusCode(StatusCodes.Status200OK, categories);
+            return StatusCode(StatusCodes.Status200OK, categorys);
         }
 
-        // GET: api/Categories/5
+        // GET: api/Categorys/5
         [HttpGet("{id}")]
         public async Task<ActionResult<CategoryResDTO>> GetCategory(int id)
         {
             var category = await _service.GetCategoryByIdAsync(id);
 
-            if (category == null)
+            if (category.Success == false & category.Message == "NotFound")
             {
-                return StatusCode(StatusCodes.Status400BadRequest, $"No Category found for id: {id}");
+                category.Message = $"No Category found for id: {id}";
+                return StatusCode(404, category);
             }
 
             return StatusCode(StatusCodes.Status200OK, category);
         }
 
-        // PUT: api/Categories/5
+        // PUT: api/Categorys/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<ActionResult<CategoryResDTO>> PutCategory(int id, CategoryReqDTO category)
+        public async Task<ActionResult<CategoryResDTO>> PutCategory(int id, CategoryReqDTO Category)
         {
-            var categoryModified = await _service.PutCategoryAsync(id, category);
-            if (categoryModified == null)
+            var categoryModified = await _service.PutCategoryAsync(id, Category);
+            if (categoryModified.Success == false & categoryModified.Message == "NotFound")
             {
-                return StatusCode(StatusCodes.Status400BadRequest, $"No Category found for id: {id}");
+                categoryModified.Message = $"No Category found for id: {id}";
+                return StatusCode(404, categoryModified);
             }
-            return categoryModified;
+            return Ok(categoryModified);
         }
 
-        // POST: api/Categories
+        // POST: api/Categorys
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<CategoryResDTO>> PostCategory(CategoryReqDTO categoryDto)
+        public async Task<ActionResult<CategoryResDTO>> PostCategory(CategoryReqDTO CategoryDto)
         {
-            var category = await _service.PostCategoryAsync(categoryDto);
-            return CreatedAtAction("GetCategory", new {id = category.Id }, category);
+            var category = await _service.PostCategoryAsync(CategoryDto);
+            return Ok(category);
         }
 
-        // DELETE: api/Categories/5
+        // DELETE: api/Categorys/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteCategory(int id)
         {
-            try
+            var category = await _service.DeleteCategoryAsync(id);
+            if (category.Success == false & category.Message == "NotFound")
             {
-                var isDeleted = await _service.DeleteCategoryAsync(id);
-                if (!isDeleted)
-                {
-                    return StatusCode(StatusCodes.Status400BadRequest, $"No Category found for id: {id}");
-                }
-                return StatusCode(StatusCodes.Status200OK, "Category eliminated");
+                category.Message = $"No Category found for id: {id}";
+                return StatusCode(404, category);
             }
-            catch (Exception ex)
+            else if (category.Success == false & category.Message == "HasCourses")
             {
-                return StatusCode(StatusCodes.Status400BadRequest, ex);
+                category.Message = "Courses have this category";
+                return StatusCode(StatusCodes.Status400BadRequest, category);
             }
+            return StatusCode(StatusCodes.Status200OK, category);
         }
 
     }

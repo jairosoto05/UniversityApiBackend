@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using UniversityApiBackend.DTO;
 
 namespace UniversityApiBackend.Models.DataModels
 {
@@ -18,9 +19,8 @@ namespace UniversityApiBackend.Models.DataModels
         [Required]
         public string Description { get; set; } = string.Empty;
         public Level Level { get; set; } = Level.Basic;
-
         public virtual Category? Category { get; set; }
-        public virtual ICollection<Student> Students { get; set; } = new List<Student>();
+        public virtual ICollection<Student>? Students { get; set; } = new List<Student>();
 
 
     }

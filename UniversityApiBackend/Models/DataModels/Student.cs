@@ -10,8 +10,7 @@ namespace UniversityApiBackend.Models.DataModels
         public string LastName { get; set; } = string.Empty;
         [Required]
         public DateTime Dob { get; set; }
-
-        public virtual ICollection<Course> Courses { get; set; } = new List<Course>();
+        public virtual IList<Course> Courses { get; set; } = new List<Course>();
 
         
 

@@ -3,10 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using UniversityApiBackend.DataAccess;
+using UniversityApiBackend.DTO;
 using UniversityApiBackend.Models.DataModels;
+using UniversityApiBackend.Services;
 
 namespace UniversityApiBackend.Controllers
 {
@@ -14,96 +17,83 @@ namespace UniversityApiBackend.Controllers
     [ApiController]
     public class StudentsController : ControllerBase
     {
-        private readonly UniversityDBContext _context;
+        private readonly IStudentService _service;
 
-        public StudentsController(UniversityDBContext context)
+        public StudentsController(IStudentService service)
         {
-            _context = context;
+            _service = service;
         }
 
         // GET: api/Students
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Student>>> GetSTUDENTS()
+        public async Task<ActionResult<IEnumerable<StudentResDTO>>> GetStudents()
         {
-            return await _context.STUDENTS.Include("Courses")
-                    .ToListAsync();
+            var students = await _service.GetStudentsAsync();
+
+            if (students.Message == "NotFound")
+            {
+                students.Message = $"No Student in Database";
+                return StatusCode(404, students);
+            }
+
+            return StatusCode(StatusCodes.Status200OK, students);
         }
 
         // GET: api/Students/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Student>> GetStudent(int id)
+        public async Task<ActionResult<StudentResDTO>> GetStudent(int id)
         {
-            var student = await _context.STUDENTS.FindAsync(id);
+            var course = await _service.GetStudentByIdAsync(id);
 
-            if (student == null)
+            if (course.Success == false & course.Message == "NotFound")
             {
-                return NotFound();
+                course.Message = $"No Student found for id: {id}";
+                return StatusCode(404, course);
             }
 
-            return student;
+            return StatusCode(StatusCodes.Status200OK, course);
         }
 
         // PUT: api/Students/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutStudent(int id, Student student)
+        public async Task<ActionResult<StudentResDTO>> PutStudent(int id, StudentReqDTO Student)
         {
-            if (id != student.Id)
+            var courseModified = await _service.PutStudentAsync(id, Student);
+            if (courseModified.Success == false & courseModified.Message == "NotFound")
             {
-                return BadRequest();
+                courseModified.Message = $"No Student found for id: {id}";
+                return StatusCode(404, courseModified);
             }
-
-            _context.Entry(student).State = EntityState.Modified;
-
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!StudentExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
-
-            return NoContent();
+            return Ok(courseModified);
         }
 
         // POST: api/Students
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Student>> PostStudent(Student student)
+        public async Task<ActionResult<StudentResDTO>> PostStudent(StudentReqDTO StudentDto)
         {
-            _context.STUDENTS.Add(student);
-            await _context.SaveChangesAsync();
+            var course = await _service.PostStudentAsync(StudentDto);
+            //if (course.Data == null & course.Message == "CatNotFound")
+            //{
+            //    return StatusCode(404, $"No Category found for id: {StudentDto.Category.Id}");
+            //};
 
-            return CreatedAtAction("GetStudent", new { id = student.Id }, student);
+            return Ok(course);
         }
 
         // DELETE: api/Students/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteStudent(int id)
         {
-            var student = await _context.STUDENTS.FindAsync(id);
-            if (student == null)
+            var course = await _service.DeleteStudentAsync(id);
+            if (course.Success == false & course.Message == "NotFound")
             {
-                return NotFound();
+                course.Message = $"No Student found for id: {id}";
+                return StatusCode(404, course);
             }
-
-            _context.STUDENTS.Remove(student);
-            await _context.SaveChangesAsync();
-
-            return NoContent();
+            return StatusCode(StatusCodes.Status200OK, course);
         }
 
-        private bool StudentExists(int id)
-        {
-            return _context.STUDENTS.Any(e => e.Id == id);
-        }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using System.Reflection.Metadata;
 using UniversityApiBackend.Models.DataModels;
 
 namespace UniversityApiBackend.DataAccess
@@ -14,6 +15,14 @@ namespace UniversityApiBackend.DataAccess
         public DbSet<Category>? CATEGORIES { get; set; }
         public DbSet<Student>? STUDENTS { get; set; }
 
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder
+                .Entity<Course>()
+                .HasOne(e => e.Category)
+                .WithMany(e => e.Courses)
+                .OnDelete(DeleteBehavior.SetNull);
+        }
 
     }
 }

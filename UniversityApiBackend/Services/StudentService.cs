@@ -6,23 +6,23 @@ using UniversityApiBackend.Models.DataModels;
 
 namespace UniversityApiBackend.Services
 {
-    public class CategoryService : ICategoryService
+    public class StudentService : IStudentService
     {
         private readonly UniversityDBContext _context;
         private readonly IMapper _mapper;
 
-        public CategoryService(UniversityDBContext context, IMapper mapper)
+        public StudentService(UniversityDBContext context, IMapper mapper)
         {
             _context = context;
             _mapper = mapper;
         }
-        public async Task<ServiceResponse<List<CategoryResDTO>>> GetCategorysAsync()
+        public async Task<ServiceResponse<List<StudentResDTO>>> GetStudentsAsync()
         {
-            ServiceResponse<List<CategoryResDTO>> _response = new();
+            ServiceResponse<List<StudentResDTO>> _response = new();
             try
             {
-                var categories = await _context.CATEGORIES.Include(c => c.Courses).ToListAsync();
-                if (categories == null)
+                var Students = await _context.STUDENTS!.Include(c => c.Courses).ToListAsync();
+                if (Students == null)
                 {
                     _response.Success = false;
                     _response.Message = "NotFound";
@@ -30,7 +30,7 @@ namespace UniversityApiBackend.Services
                 }
                 _response.Success = true;
                 _response.Message = "ok";
-                _response.Data = _mapper.Map<List<CategoryResDTO>>(categories);
+                _response.Data = _mapper.Map<List<StudentResDTO>>(Students);
 
             }
             catch (Exception ex)
@@ -45,13 +45,13 @@ namespace UniversityApiBackend.Services
 
         }
 
-        public async Task<ServiceResponse<CategoryResDTO>> GetCategoryByIdAsync(int id)
+        public async Task<ServiceResponse<StudentResDTO>> GetStudentByIdAsync(int id)
         {
-            ServiceResponse<CategoryResDTO> _response = new();
+            ServiceResponse<StudentResDTO> _response = new();
             try
             {
-                var category = await _context.CATEGORIES.Include(c => c.Courses).FirstOrDefaultAsync(c => c.Id == id);
-                if (category == null)
+                var student = await _context.STUDENTS!.Include(c => c.Courses).FirstOrDefaultAsync(c => c.Id == id);
+                if (student == null)
                 {
                     _response.Success = false;
                     _response.Message = "NotFound";
@@ -59,7 +59,7 @@ namespace UniversityApiBackend.Services
                 }
                 _response.Success = true;
                 _response.Message = "OK";
-                _response.Data = _mapper.Map<CategoryResDTO>(category);
+                _response.Data = _mapper.Map<StudentResDTO>(student);
             }
             catch (Exception ex)
             {
@@ -71,19 +71,36 @@ namespace UniversityApiBackend.Services
             return _response;
         }
 
-        public async Task<ServiceResponse<CategoryResDTO>> PostCategoryAsync(CategoryReqDTO CategoryDto)
+        public async Task<ServiceResponse<StudentResDTO>> PostStudentAsync(StudentReqDTO StudentDto)
         {
-            ServiceResponse<CategoryResDTO> _response = new();
+            ServiceResponse<StudentResDTO> _response = new();
             try
             {
-                var category = new Category()
+                var student = new Student()
                 {
-                    Name = CategoryDto.Name,
+                    FirstName = StudentDto.FirstName,
+                    LastName = StudentDto.LastName,
+                    Dob = StudentDto.Dob
                 };
-                _context.CATEGORIES.Add(category);
+                var course = new Course();
+                if (StudentDto.Courses.Count > 0)
+                {
+                    foreach(CourseMinDTO C in StudentDto.Courses)
+                    {
+                        course = _context.COURSES!.FirstOrDefault(c => c.Id == C.Id);
+                        if (course == null)
+                        {
+                            _response.Success = false;
+                            _response.Message = "Course NotFound";
+                            return _response;
+                        }
+                        student.Courses.Add(course);
+                    }
+                }
+                _context.STUDENTS!.Add(student);
                 await _context.SaveChangesAsync();
 
-                _response.Data = _mapper.Map<CategoryResDTO>(category);
+                _response.Data = _mapper.Map<StudentResDTO>(student);
                 _response.Success = true;
                 _response.Message = "Created";
 
@@ -99,13 +116,34 @@ namespace UniversityApiBackend.Services
             return _response;
         }
 
-        public async Task<ServiceResponse<CategoryResDTO>> PutCategoryAsync(int id, CategoryReqDTO CategoryDto)
+        public async Task<ServiceResponse<StudentResDTO>> PutStudentAsync(int id, StudentReqDTO StudentDto)
         {
-            ServiceResponse<CategoryResDTO> _response = new();
+            ServiceResponse<StudentResDTO> _response = new();
             try
             {
-                Category CategoryModified = new() { Id = id, Name = CategoryDto.Name };
-                _context.Entry(CategoryModified).State = EntityState.Modified;
+                var student = new Student()
+                {
+                    Id = id,
+                    FirstName = StudentDto.FirstName,
+                    LastName = StudentDto.LastName,
+                    Dob = StudentDto.Dob
+                };
+                var course = new Course();
+                if (StudentDto.Courses.Count > 0)
+                {
+                    foreach (CourseMinDTO C in StudentDto.Courses)
+                    {
+                        course = _context.COURSES!.FirstOrDefault(c => c.Id == C.Id);
+                        if (course == null)
+                        {
+                            _response.Success = false;
+                            _response.Message = "Course NotFound";
+                            return _response;
+                        }
+                        student.Courses.Add(course);
+                    }
+                }
+                _context.Entry(student).State = EntityState.Modified;
                 await _context.SaveChangesAsync();
                 _response.Data = null!;
                 _response.Success = true;
@@ -113,7 +151,7 @@ namespace UniversityApiBackend.Services
             }
             catch (Exception ex)
             {
-                if (!CategoryExists(id))
+                if (!StudentExists(id))
                 {
                     _response.Data = null!;
                     _response.Success = false;
@@ -130,28 +168,22 @@ namespace UniversityApiBackend.Services
                 }
             }
 
-            return await GetCategoryByIdAsync(id);
+            return await GetStudentByIdAsync(id);
         }
 
-        public async Task<ServiceResponse<CategoryResDTO>> DeleteCategoryAsync(int id)
+        public async Task<ServiceResponse<StudentResDTO>> DeleteStudentAsync(int id)
         {
-            ServiceResponse<CategoryResDTO> _response = new();
+            ServiceResponse<StudentResDTO> _response = new();
             try
             {
-                var category = await _context.CATEGORIES.Include(c => c.Courses).FirstOrDefaultAsync(c => c.Id == id);
-                if (category == null)
+                var student = await _context.STUDENTS!.FindAsync(id);
+                if (student == null)
                 {
                     _response.Success = false;
                     _response.Message = "NotFound";
                     return _response;
                 }
-                else if (category.Courses != null)
-                {
-                    _response.Success = false;
-                    _response.Message = "HasCourses";
-                    return _response;
-                }
-                _context.CATEGORIES.Remove(category);
+                _context.STUDENTS.Remove(student);
                 await _context.SaveChangesAsync();
 
                 _response.Success = true;
@@ -174,9 +206,9 @@ namespace UniversityApiBackend.Services
 
 
 
-        private bool CategoryExists(int id)
+        private bool StudentExists(int id)
         {
-            return _context.CATEGORIES.Any(e => e.Id == id);
+            return _context.STUDENTS!.Any(e => e.Id == id);
         }
     }
 }

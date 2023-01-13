@@ -15,6 +15,8 @@ b.UseOracleSQLCompatibility("11")));
 // Add services to the container.
 builder.Services.AddControllers();
 builder.Services.AddScoped<ICategoryService,CategoryService>();
+builder.Services.AddScoped<ICourseService, CourseService>();
+builder.Services.AddScoped<IStudentService, StudentService>();
 
 //Add AutoMapper
 builder.Services.AddAutoMapper(typeof(Program));
