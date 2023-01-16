@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Mvc;
@@ -13,6 +15,7 @@ using UniversityApiBackend.Services;
 
 namespace UniversityApiBackend.Controllers
 {
+    [Authorize]
     [Route("api/[controller]")]
     [ApiController]
     public class StudentsController : ControllerBase
@@ -56,6 +59,7 @@ namespace UniversityApiBackend.Controllers
 
         // PUT: api/Students/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        [Authorize(Roles = ("Admin"))]
         [HttpPut("{id}")]
         public async Task<ActionResult<StudentResDTO>> PutStudent(int id, StudentReqDTO Student)
         {
@@ -71,6 +75,7 @@ namespace UniversityApiBackend.Controllers
         // POST: api/Students
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
+        [Authorize(Roles = ("Admin"))]
         public async Task<ActionResult<StudentResDTO>> PostStudent(StudentReqDTO StudentDto)
         {
             var course = await _service.PostStudentAsync(StudentDto);
@@ -83,6 +88,7 @@ namespace UniversityApiBackend.Controllers
         }
 
         // DELETE: api/Students/5
+        [Authorize(Roles = ("Admin"))]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteStudent(int id)
         {

@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Oracle.EntityFrameworkCore.Metadata;
 using UniversityApiBackend.DataAccess;
@@ -11,9 +12,10 @@ using UniversityApiBackend.DataAccess;
 namespace UniversityApiBackend.Migrations
 {
     [DbContext(typeof(UniversityDBContext))]
-    partial class UniversityDBContextModelSnapshot : ModelSnapshot
+    [Migration("20230116150656_e")]
+    partial class e
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -220,9 +222,6 @@ namespace UniversityApiBackend.Migrations
                         .IsRequired()
                         .HasColumnType("NVARCHAR2(2000)");
 
-                    b.Property<int>("Rol")
-                        .HasColumnType("NUMBER(10)");
-
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("TIMESTAMP(7)");
 
@@ -235,9 +234,6 @@ namespace UniversityApiBackend.Migrations
                         .HasColumnType("NVARCHAR2(50)");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("Username")
-                        .IsUnique();
 
                     b.ToTable("USERS");
                 });

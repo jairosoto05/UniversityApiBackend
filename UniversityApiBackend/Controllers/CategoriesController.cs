@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -11,19 +13,20 @@ using UniversityApiBackend.Models.DataModels;
 using UniversityApiBackend.Services;
 
 namespace UniversityApiBackend.Controllers
-{ 
+{
+    [Authorize(Roles = ("Admin"))]
     [Route("api/[controller]")]
     [ApiController]
-    public class CategorysController : ControllerBase
+    public class CategoriesController : ControllerBase
     {
         private readonly ICategoryService _service;
 
-        public CategorysController(ICategoryService service)
+        public CategoriesController(ICategoryService service)
         {
             _service = service;
         }
 
-        // GET: api/Categorys
+        // GET: api/Categories
         [HttpGet]
         public async Task<ActionResult<IEnumerable<CategoryResDTO>>> GetCategorys()
         {
@@ -38,7 +41,7 @@ namespace UniversityApiBackend.Controllers
             return StatusCode(StatusCodes.Status200OK, categorys);
         }
 
-        // GET: api/Categorys/5
+        // GET: api/Categories/5
         [HttpGet("{id}")]
         public async Task<ActionResult<CategoryResDTO>> GetCategory(int id)
         {
@@ -53,7 +56,7 @@ namespace UniversityApiBackend.Controllers
             return StatusCode(StatusCodes.Status200OK, category);
         }
 
-        // PUT: api/Categorys/5
+        // PUT: api/Categories/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
         public async Task<ActionResult<CategoryResDTO>> PutCategory(int id, CategoryReqDTO Category)
@@ -67,7 +70,7 @@ namespace UniversityApiBackend.Controllers
             return Ok(categoryModified);
         }
 
-        // POST: api/Categorys
+        // POST: api/Categories
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
         public async Task<ActionResult<CategoryResDTO>> PostCategory(CategoryReqDTO CategoryDto)
@@ -76,7 +79,7 @@ namespace UniversityApiBackend.Controllers
             return Ok(category);
         }
 
-        // DELETE: api/Categorys/5
+        // DELETE: api/Categories/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteCategory(int id)
         {

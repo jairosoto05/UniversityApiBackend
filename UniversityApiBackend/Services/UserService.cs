@@ -80,8 +80,10 @@ namespace UniversityApiBackend.Services
                 {
                     Name = UserDto.Name,
                     LastName = UserDto.LastName,
+                    Username = UserDto.Username,
                     Email = UserDto.Email,
-                    Password= UserDto.Password,
+                    PasswordHash = BCrypt.Net.BCrypt.HashPassword(UserDto.Password),
+                    Rol = UserDto.Rol,
                 };
 
                 _context.USERS!.Add(user);
@@ -113,8 +115,10 @@ namespace UniversityApiBackend.Services
                     Id= id,
                     Name = UserDto.Name,
                     LastName = UserDto.LastName,
+                    Username = UserDto.Username,
                     Email = UserDto.Email,
-                    Password = UserDto.Password,
+                    PasswordHash = BCrypt.Net.BCrypt.HashPassword(UserDto.Password),
+                    Rol = UserDto.Rol,
                 };
 
                 _context.Entry(user).State = EntityState.Modified;
